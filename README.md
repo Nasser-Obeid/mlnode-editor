@@ -2,6 +2,10 @@
 
 **Visual node-based editor for [MLnode](https://github.com/Nasser-Obeid/MLnode) graphs.**
 
+### ▶ [Try it live — nasser-obeid.github.io/MLnode-editor](https://nasser-obeid.github.io/MLnode-editor/)
+
+No install, no sign-up, no server — the whole editor runs in your browser.
+
 Drag PyTorch layers onto a canvas, wire them into a DAG, and export a `.mlnode.json` file that the MLnode Python backend validates and compiles into an executable `nn.Module`. The editor and the backend share only the JSON schema — there is no server; everything runs in the browser.
 
 ```
@@ -9,6 +13,8 @@ draw graph  →  Export  →  model.mlnode.json  →  MLnodeModel.load()  →  v
 ```
 
 ## Quick Start
+
+The [hosted version](https://nasser-obeid.github.io/MLnode-editor/) needs nothing installed. To run it locally:
 
 ```bash
 npm install
