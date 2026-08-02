@@ -2,7 +2,7 @@
 
 **Visual node-based editor for [MLnode](https://github.com/Nasser-Obeid/MLnode) graphs.**
 
-### ▶ [Try it live — nasser-obeid.github.io/MLnode-editor](https://nasser-obeid.github.io/MLnode-editor/)
+### ▶ [Try it live — nasser-obeid.github.io/mlnode-editor](https://nasser-obeid.github.io/mlnode-editor/)
 
 No install, no sign-up, no server — the whole editor runs in your browser.
 
@@ -14,7 +14,7 @@ draw graph  →  Export  →  model.mlnode.json  →  MLnodeModel.load()  →  v
 
 ## Quick Start
 
-The [hosted version](https://nasser-obeid.github.io/MLnode-editor/) needs nothing installed. To run it locally:
+The [hosted version](https://nasser-obeid.github.io/mlnode-editor/) needs nothing installed. To run it locally:
 
 ```bash
 npm install
