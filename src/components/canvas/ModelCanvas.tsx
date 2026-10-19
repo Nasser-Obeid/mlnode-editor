@@ -25,14 +25,31 @@ export default function ModelCanvas() {
   const setOutputNode = useGraphStore((s) => s.setOutputNode);
   const undo = useGraphStore((s) => s.undo);
   const redo = useGraphStore((s) => s.redo);
+  const openLayer = useGraphStore((s) => s.openLayer);
   const selectNode = useUIStore((s) => s.selectNode);
+  const addToast = useUIStore((s) => s.addToast);
+  const requestFitView = useUIStore((s) => s.requestFitView);
   const fitViewNonce = useUIStore((s) => s.fitViewNonce);
 
-  // Re-fit the viewport when import/tidy reshapes the graph.
+  // Re-fit the viewport when import/tidy/opening a layer reshapes the graph.
+  // Wait until ReactFlow has measured the new nodes: fitting earlier sees no
+  // node sizes and jumps to max zoom.
   useEffect(() => {
-    if (fitViewNonce > 0) {
-      rfRef.current?.fitView({ padding: 0.15, duration: 300 });
-    }
+    if (fitViewNonce === 0) return;
+    let frame = 0;
+    let tries = 0;
+    const tryFit = () => {
+      const rf = rfRef.current;
+      if (!rf) return;
+      const measured = rf.getNodes().every((n) => n.width && n.height);
+      if (measured || ++tries > 30) {
+        rf.fitView({ padding: 0.15, duration: 300 });
+      } else {
+        frame = requestAnimationFrame(tryFit);
+      }
+    };
+    frame = requestAnimationFrame(tryFit);
+    return () => cancelAnimationFrame(frame);
   }, [fitViewNonce]);
 
   const onDragOver = useCallback((e: DragEvent) => {
@@ -43,16 +60,29 @@ export default function ModelCanvas() {
   const onDrop = useCallback(
     (e: DragEvent) => {
       e.preventDefault();
-      const type = e.dataTransfer.getData('application/mlnode-type');
-      if (!type || !rfRef.current) return;
-
+      if (!rfRef.current) return;
       const pos = rfRef.current.screenToFlowPosition({
         x: e.clientX,
         y: e.clientY,
       });
+
+      // A JSON custom layer dragged from the library's Custom Layers section
+      const layer = e.dataTransfer.getData('application/mlnode-layer');
+      if (layer) {
+        const editing = useGraphStore.getState().editStack;
+        if (editing.some((f) => f.layer === layer)) {
+          addToast(`Layer ${layer} cannot use itself.`, 'error');
+          return;
+        }
+        addNode('custom', pos, { label: layer, layer, params: {} });
+        return;
+      }
+
+      const type = e.dataTransfer.getData('application/mlnode-type');
+      if (!type) return;
       addNode(type, pos);
     },
-    [addNode]
+    [addNode, addToast]
   );
 
   const onKeyDown = useCallback(
@@ -84,6 +114,21 @@ export default function ModelCanvas() {
     [setOutputNode]
   );
 
+  // Double-click a JSON layer node to open its sub-graph.
+  const onNodeDoubleClick = useCallback(
+    (_: React.MouseEvent, node: any) => {
+      if (node.type !== 'custom' || !node.data?.layer) return;
+      const error = openLayer(node.data.layer);
+      if (error) {
+        addToast(error, 'error');
+        return;
+      }
+      selectNode(null);
+      requestFitView();
+    },
+    [openLayer, addToast, selectNode, requestFitView]
+  );
+
   const onPaneClick = useCallback(() => {
     selectNode(null);
   }, [selectNode]);
@@ -106,6 +151,7 @@ export default function ModelCanvas() {
           onDragOver={onDragOver}
           onDrop={onDrop}
           onNodeClick={onNodeClick}
+          onNodeDoubleClick={onNodeDoubleClick}
           onNodeContextMenu={onNodeContextMenu}
           onPaneClick={onPaneClick}
           nodeTypes={nodeTypes}
@@ -133,6 +179,7 @@ export default function ModelCanvas() {
             }}
             nodeColor={(n) => {
               if (n.type === 'Input') return '#22c55e';
+              if (n.type === 'custom') return '#94a3b8';
               return '#3b82f6';
             }}
             maskColor="rgba(0,0,0,0.7)"

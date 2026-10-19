@@ -23,7 +23,8 @@ function estimateHeight(node: RFNode): number {
   const paramCount = Math.min(Object.keys(node.data?.params ?? {}).length, 3);
   const badges =
     (node.data?.block || node.data?.block_ref ? 1 : 0) +
-    (node.data?.hf_model ? 1 : 0);
+    (node.data?.hf_model ? 1 : 0) +
+    (node.type === 'custom' && !node.data?.layer ? 1 : 0);
   const base = 58 + paramCount * 15 + badges * 15;
   const portRows = node.data?.outputs?.length ?? 0;
   return Math.max(base, 34 + portRows * 24);

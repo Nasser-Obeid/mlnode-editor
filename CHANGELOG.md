@@ -5,6 +5,54 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-10-19
+
+Supports [mlnode 1.1.0](https://github.com/Nasser-Obeid/MLnode)'s JSON custom layers (schema `1.1`).
+
+### Added
+
+- **JSON custom layers.** A **◆ Custom Layers** library section lists the
+  model's layers; drag one onto the canvas to use it.
+  - **New** creates a starter layer; **From selection** turns the selected
+    nodes into a layer and replaces them with one wired-up layer node (one
+    Input port per distinct incoming value, single output).
+  - **Double-click** a layer node to edit its sub-graph on the canvas; nested
+    layers open as a breadcrumb (`Model › ◆ A › ◆ B`) with a **Done** button.
+  - **Layer Panel**: rename the layer, description, and typed params
+    (`int`/`float`/`bool`/`str`/`list`/`dict`/`any`, required or default).
+    Renaming a param rewrites its `$`/`${…}` references and the param key on
+    every node that uses the layer; renaming the layer updates all users.
+  - Config panel for `custom` nodes: switch between **JSON layer** and
+    **Python class**; layer nodes get a typed form of the declared params
+    (required marked, defaults as placeholders, undeclared params flagged).
+  - Layers with several Input nodes render named port handles (the Input
+    node IDs), bound via `target_port` like core multi-input layers.
+  - **Save library** downloads `{"custom_layers": …}` for
+    `LayerRegistry.register_library()`; importing such a file merges its
+    layers into the current model.
+- **Validation** mirrors the backend's load-time checks: missing / unknown /
+  mistyped layer params, port binding, undeclared `$` references, layer
+  definition structure, layers using each other in a loop, at least one
+  Input node. Layers not defined in the file are a warning (they may come
+  from a Python `LayerRegistry`).
+- **Editable node IDs** in the config panel (edges and the output follow).
+- Text fields for layer params commit on Enter/blur, so values like `0.5` or
+  `${dim * 4}` can be typed without being reparsed mid-keystroke.
+
+### Changed
+
+- Import accepts schema `1.0` and `1.1`; export writes `1.1` only when the
+  model defines or uses JSON layers, otherwise `1.0`.
+- Export, Validate and Ctrl+S work while a layer is open (the open edits are
+  included). Undo history now also covers custom layer definitions.
+- The palette's Python custom-layer entry is labeled **Python Class**.
+- Import errors list Zod issue messages instead of raw JSON.
+
+### Fixed
+
+- **Fit-to-view after import / Tidy jumped to maximum zoom**: it ran before
+  ReactFlow had measured the new nodes. It now waits for measurement.
+
 ## [1.0.0] — 2026-07-18
 
 First public release, alongside [mlnode 1.0.0](https://github.com/Nasser-Obeid/MLnode) on PyPI.
