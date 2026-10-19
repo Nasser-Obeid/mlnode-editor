@@ -33,10 +33,11 @@ Requires Node 18+.
 ## Features
 
 - **Full palette** — every node type the Python backend accepts, grouped by PyTorch category (convolution, pooling, activations, normalization, recurrent, transformer, linear, dropout, sparse, vision, reduction, tensor ops, Block, custom), with sensible PyTorch-matching default params.
+- **JSON custom layers** (mlnode schema 1.1) — define reusable, parameterized layers and use them like built-in types. Create one from scratch or **group a selection** of nodes into a layer; double-click a layer node to edit its sub-graph (nested layers open as a breadcrumb); declare typed params with defaults and reference them in node fields as `$name` / `${expr}`. Layers with several Input nodes get named ports. Layers travel inside the model file or as a shareable library (`LayerRegistry.register_library()` in Python).
 - **Named input ports** — multi-input layers (`Transformer`, `TransformerDecoder(-Layer)`, `MultiheadAttention`, `Bilinear`) render one labeled handle per port; the handle you connect to becomes the edge's `target_port` in the exported JSON.
 - **Multi-output ports** — `Split` nodes expose configurable named output handles (`source_port`).
-- **Config panel** — edit params, weight sharing (`shared_id`), fallback reduction, custom import paths, and HuggingFace fields on the selected node.
-- **Graph validation** — duplicate IDs, cycles, missing output node, disconnected nodes, missing custom `path`/Block definition, illegal `reduction` fields — surfaced as toasts before export.
+- **Config panel** — rename node IDs, edit params, weight sharing (`shared_id`), fallback reduction, custom layers (JSON layer or Python import path), and HuggingFace fields on the selected node.
+- **Graph validation** — duplicate IDs, cycles, missing output/Input node, disconnected nodes, custom nodes without a layer or path, Block definitions, illegal `reduction` fields, and for JSON layers the same param and port checks the backend runs at load time — surfaced as toasts before export.
 - **Auto-layout** — imported files (which carry no positions) are arranged with a layered Sugiyama-style layout; the **Tidy** button re-runs it any time.
 - **Round-trip import/export** — exported files open in the Python backend and vice versa; unlabeled edges into multi-input nodes are backfilled with ports on import, matching the backend's declaration-order fallback.
 - **Undo/redo**, minimap, pan/zoom, dark UI.
@@ -45,7 +46,7 @@ Requires Node 18+.
 
 | Keys | Action |
 |------|--------|
-| `Ctrl/Cmd + S` | Quick-save — downloads the current graph as `.mlnode.json` (skips validation) |
+| `Ctrl/Cmd + S` | Quick-save — downloads the current graph as `.mlnode.json` (skips validation; includes custom layers, even while one is open) |
 | `Ctrl/Cmd + Z` | Undo |
 | `Ctrl/Cmd + Shift + Z` | Redo |
 | `Delete` / `Backspace` | Delete selected nodes/edges (canvas must have focus) |

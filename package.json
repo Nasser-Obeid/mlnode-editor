@@ -1,6 +1,6 @@
 {
   "name": "mlnode-editor",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "Visual node-based editor for MLnode graphs — draw a neural network, export .mlnode.json, train it with PyTorch",
   "license": "MIT",

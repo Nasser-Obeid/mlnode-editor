@@ -28,8 +28,10 @@ export interface MLnodeNode {
   // HuggingFace (top-level, NOT inside params)
   hf_model?: string;
   hf_config?: string;
-  // Custom layer (top-level, NOT inside params)
+  // Custom layer (top-level, NOT inside params): a Python class path, or the
+  // name of a JSON layer definition (schema 1.1) — exactly one of the two.
   path?: string;
+  layer?: string;
   // Block
   block?: MLnodeBlockDefinition;
   block_ref?: string;
@@ -42,6 +44,30 @@ export interface MLnodeEdge {
   target_port: string | null;
 }
 
+export type ParamType = 'int' | 'float' | 'bool' | 'str' | 'list' | 'dict' | 'any';
+
+export const PARAM_TYPES: ParamType[] = ['int', 'float', 'bool', 'str', 'list', 'dict', 'any'];
+
+/** A declared param of a JSON custom layer. No `default` key → required. */
+export interface MLnodeParamSpec {
+  type?: ParamType;
+  default?: any;
+  description?: string;
+}
+
+/**
+ * A JSON custom layer (schema 1.1): a named, parameterized sub-graph.
+ * Mirrors LayerDefinition in the Python backend (mlnode/schema/models.py).
+ * Its Input nodes are its input ports, in declaration order.
+ */
+export interface MLnodeLayerDefinition {
+  description?: string;
+  params: Record<string, MLnodeParamSpec>;
+  nodes: MLnodeNode[];
+  edges: MLnodeEdge[];
+  output_node: string;
+}
+
 export interface MLnodeModel {
   mlnode_schema_version: string;
   metadata?: MLnodeMetadata;
@@ -49,7 +75,12 @@ export interface MLnodeModel {
   output_node: string;
   nodes: MLnodeNode[];
   edges: MLnodeEdge[];
+  custom_layers?: Record<string, MLnodeLayerDefinition>;
 }
+
+/** Schema versions the backend accepts; 1.1 adds custom_layers. */
+export const SUPPORTED_SCHEMA_VERSIONS = ['1.0', '1.1'] as const;
+export const CUSTOM_LAYERS_SCHEMA_VERSION = '1.1';
 
 /** Reduction ops — implicit reduction, no `reduction` field allowed. */
 export const REDUCTION_OPS = new Set([

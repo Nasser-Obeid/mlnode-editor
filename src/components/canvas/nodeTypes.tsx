@@ -1,12 +1,12 @@
 /** Node component registry — renders each node type with handles and color coding. */
 
-import React, { memo } from 'react';
-import { Handle, Position, NodeProps } from 'reactflow';
+import React, { memo, useEffect } from 'react';
+import { Handle, Position, NodeProps, useUpdateNodeInternals } from 'reactflow';
 import type { RFNodeData } from '../../types/reactflow';
 import { getNodeColor } from '../../constants/nodeCategories';
-import { INPUT_PORTS } from '../../types/mlnode';
 import { useGraphStore } from '../../stores/graphStore';
 import { useUIStore } from '../../stores/uiStore';
+import { getInputPorts } from '../../utils/customLayers';
 
 const MLnodeNode = memo(({ id, data, type, selected }: NodeProps<RFNodeData>) => {
   const outputNodeId = useGraphStore((s) => s.settings.outputNodeId);
@@ -16,8 +16,15 @@ const MLnodeNode = memo(({ id, data, type, selected }: NodeProps<RFNodeData>) =>
   const isInput = type === 'Input';
   const color = getNodeColor(type ?? 'Linear');
   const hasOutputPorts = data.outputs && data.outputs.length > 0;
-  const inputPorts = INPUT_PORTS[type ?? ''];
+  const customLayers = useGraphStore((s) => s.customLayers);
+  const inputPorts = getInputPorts(type, data, customLayers);
   const portRows = Math.max(inputPorts?.length ?? 0, data.outputs?.length ?? 0);
+
+  // Handles change when a JSON layer's Input nodes change; tell ReactFlow to
+  // re-measure them so edges attach to the new positions.
+  const updateNodeInternals = useUpdateNodeInternals();
+  const portKey = inputPorts?.join('|') ?? '';
+  useEffect(() => updateNodeInternals(id), [id, portKey, updateNodeInternals]);
 
   return (
     <div
@@ -56,7 +63,7 @@ const MLnodeNode = memo(({ id, data, type, selected }: NodeProps<RFNodeData>) =>
             marginBottom: 2,
           }}
         >
-          {type}
+          {data.layer ? `◆ ${data.layer}` : type}
         </div>
         <div
           style={{
@@ -119,6 +126,18 @@ const MLnodeNode = memo(({ id, data, type, selected }: NodeProps<RFNodeData>) =>
         {type === 'Block' && (
           <div style={{ marginTop: 4, fontSize: 9, fontWeight: 600, color: '#06b6d4' }}>
             {data.block_ref ? `↪ ${data.block_ref}` : '⊞ inline block'}
+          </div>
+        )}
+
+        {/* Custom layer badges */}
+        {type === 'custom' && !data.layer && (
+          <div style={{ marginTop: 4, fontSize: 9, fontWeight: 600, color: '#94a3b8' }}>
+            {data.path ? `py: ${data.path.split('.').pop()}` : 'no layer / path'}
+          </div>
+        )}
+        {data.layer && !customLayers[data.layer] && (
+          <div style={{ marginTop: 4, fontSize: 9, fontWeight: 600, color: '#f59e0b' }}>
+            ↪ from LayerRegistry
           </div>
         )}
 

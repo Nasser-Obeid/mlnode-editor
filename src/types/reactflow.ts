@@ -13,6 +13,7 @@ export interface RFNodeData {
   hf_model?: string;
   hf_config?: string;
   path?: string;
+  layer?: string;
   block?: MLnodeBlockDefinition;
   block_ref?: string;
 }

@@ -226,7 +226,7 @@ export const NODE_CATEGORIES: NodeCategory[] = [
   {
     name: 'Custom',
     color: '#64748b',
-    types: [{ type: 'custom', label: 'Custom Layer' }],
+    types: [{ type: 'custom', label: 'Python Class' }],
   },
 ];
 
